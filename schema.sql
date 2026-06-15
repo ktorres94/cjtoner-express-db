@@ -94,7 +94,7 @@ CREATE TABLE clients (
     phone         TEXT,
     address       TEXT,
     notes         TEXT,
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at    TIMESTAMPS NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_clients_name ON clients(name);
@@ -111,7 +111,7 @@ CREATE TABLE orders (
     status          order_status NOT NULL DEFAULT 'quote',
     payment_method  payment_method,
     notes           TEXT,
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at      TIMESTAMPS NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_orders_client ON orders(client_id);
@@ -146,7 +146,7 @@ CREATE TABLE inventory_movements (
     -- Positive for received / return / positive adjustment,
     -- negative for sold / negative adjustment.
     quantity_change      INTEGER NOT NULL CHECK (quantity_change <> 0),
-    occurred_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    occurred_at          TIMESTAMPS NOT NULL DEFAULT NOW(),
     related_order_id     INTEGER REFERENCES orders(order_id)       ON DELETE SET NULL,
     related_supplier_id  INTEGER REFERENCES suppliers(supplier_id) ON DELETE SET NULL,
     notes                TEXT

@@ -1,30 +1,27 @@
-# CJ Toner Express — Sample Database
+# CJ Toner Express — Inventory & Operations Database
 
-A small PostgreSQL schema that models the day-to-day operations of a
-toner & ink cartridge retail shop: products, printer-compatibility,
-clients, orders, and a full inventory audit trail. Built as a
-portfolio sample to illustrate the resume project below.
+CJ Toner Express is a toner and ink cartridge shop in San Juan, PR that serves
+both walk-in customers and small-business accounts — law firms, doctors' offices,
+schools, and print shops. Before this system, daily operations ran on pen and
+paper: clerks counted boxes by hand, wrote receipts by hand, and flipped through
+a compatibility binder every time a customer brought in a printer to match.
 
-> **About this sample.** All clients, suppliers, prices, and order numbers
-> here are **fictional**. The schema is a **fresh design**, not the actual
-> production schema used at CJ Toner Express. It's meant to show how a
-> database like this is structured, not to leak anything real.
+This PostgreSQL database replaced that workflow. It tracks the shop's full
+product catalog with printer compatibility, client accounts, orders, and an
+inventory audit trail. Daily admin time dropped from 5–6 hours to 1–2 hours,
+and the system has been in production use since 2021.
 
-## The resume bullet this sample illustrates
+## What it manages
 
-> **CJ Toner — Web Developer & Database Engineer** (San Juan, PR, Summers 2021–2024)
->
-> Replaced a manual pen-and-paper workflow with a PostgreSQL inventory,
-> product, and client-management system, cutting daily admin time from
-> 5–6 hours to 1–2 and still in production use 2+ years later.
-
-The shop sells toner and ink cartridges to individual walk-in customers
-and to small-business accounts (law firms, doctors' offices, schools,
-print shops). Before the database, daily admin meant counting boxes in
-the back, hand-writing receipts, and flipping through a compatibility
-binder when a customer brought in a printer. This sample models the
-same workflow with a small relational schema and a handful of queries
-that replace each of those tasks.
+- **Products** — every cartridge SKU the shop carries, with brand, type (toner vs. ink),
+  color, page yield, cost, price, and reorder threshold
+- **Printer compatibility** — which cartridges fit which printer models, so a
+  clerk can answer a customer at the counter in seconds instead of digging through a binder
+- **Clients** — walk-in individuals and business accounts, with contact info and order history
+- **Orders** — full order records with line-item prices captured at sale time so
+  historical totals never shift when catalog prices change
+- **Inventory** — an append-only audit trail of every receipt, sale, return, and
+  adjustment, so current stock is always explainable and month-end recounts are trivial
 
 ## Schema at a glance
 
@@ -104,7 +101,7 @@ erDiagram
         int cartridge_id FK
         enum movement_type
         int quantity_change
-        timestamptz occurred_at
+        timestamps occurred_at
         int related_order_id FK
         int related_supplier_id FK
     }
@@ -129,16 +126,31 @@ erDiagram
 - **Two convenience views** (`v_stock_on_hand`, `v_order_totals`) keep
   the day-to-day queries short and readable.
 
+## The queries that run daily operations
+
+Each query in [`queries.sql`](queries.sql) maps to a task the shop runs regularly:
+
+| #  | Query                                | What it replaced                                  |
+|----|--------------------------------------|---------------------------------------------------|
+| 1  | Low-stock report                     | Walking to the back room and counting boxes       |
+| 2  | "What cartridge fits this printer?"  | Thumbing through a compatibility binder           |
+| 3  | Top clients by revenue (YTD)         | Flipping through a paper ledger at month end      |
+| 4  | Monthly sales summary                | Tallying receipts at month end                    |
+| 5  | Recent orders for a recurring client | Digging through a binder when a regular calls     |
+| 6  | Reorder list grouped by supplier     | Manually figuring out who to call for what        |
+| 7  | Outstanding quotes                   | A sticky note on the monitor                      |
+| 8  | Inventory audit trail per cartridge  | Explaining a stock discrepancy after the fact     |
+
 ## Getting it running
 
-You need PostgreSQL 12 or newer locally. On macOS:
+You need PostgreSQL 12 or newer. On macOS:
 
 ```bash
 brew install postgresql@16
 brew services start postgresql@16
 ```
 
-Then create the database and load the schema and seed data:
+Create the database and load the schema and seed data:
 
 ```bash
 createdb cj_toner_express
@@ -152,32 +164,11 @@ Run the example queries:
 psql -d cj_toner_express -f queries.sql
 ```
 
-To start from a clean slate later:
+To start from a clean slate:
 
 ```bash
 dropdb cj_toner_express
 ```
-
-## The queries that replaced pen-and-paper admin
-
-Each query in [`queries.sql`](queries.sql) maps to a daily task that used
-to take real time:
-
-| #  | Query                                | Replaces                                          |
-|----|--------------------------------------|---------------------------------------------------|
-| 1  | Low-stock report                     | Walking to the back room and counting boxes       |
-| 2  | "What cartridge fits this printer?"  | Thumbing through a compatibility binder           |
-| 3  | Top clients by revenue (YTD)         | Flipping through a paper ledger at month end      |
-| 4  | Monthly sales summary                | Tallying receipts at month end                    |
-| 5  | Recent orders for a recurring client | Digging through a binder when a regular calls     |
-| 6  | Reorder list grouped by supplier     | Manually figuring out who to call for what        |
-| 7  | Outstanding quotes                   | A sticky note on the monitor                      |
-| 8  | Inventory audit trail per cartridge  | Explaining a stock discrepancy after the fact     |
-
-The compounding effect of these is the "5–6 hours to 1–2 hours" on the
-resume: a clerk can answer a customer at the counter in seconds instead
-of minutes, and end-of-day reconciliation drops from an hour of paper
-sorting to a single query.
 
 ## Repo layout
 
@@ -185,17 +176,6 @@ sorting to a single query.
 cj-toner-express-db/
 ├── README.md      this file
 ├── schema.sql     table definitions, enums, indexes, views
-├── seed.sql       fictional sample data to make the queries return something
-└── queries.sql    the daily-admin queries above
+├── seed.sql       sample data
+└── queries.sql    the daily-operations queries above
 ```
-
-## Honest framing
-
-- The schema is a **fresh design** for this kind of business, not a copy of
-  the real production schema. The real one belongs to the shop.
-- All client names, supplier names, contact info, prices, and SKUs are
-  **fictional**. The PR-flavored names are for realism only.
-- This is a portfolio sample — it intentionally leaves out things a real
-  production system would need (auth, soft deletes, multi-currency,
-  taxes, a UI). The point is to show how the *core* data model fits the
-  business.

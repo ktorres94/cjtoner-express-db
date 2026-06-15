@@ -2,7 +2,7 @@
 
 CJ Toner Express is a toner and ink cartridge shop in San Juan, PR that serves
 both walk-in customers and small-business accounts — law firms, doctors' offices,
-schools, and print shops. Before this system, daily operations ran on pen and
+schools, movie theaters and print shops. Before this system, daily operations ran on pen and
 paper: clerks counted boxes by hand, wrote receipts by hand, and flipped through
 a compatibility binder every time a customer brought in a printer to match.
 
